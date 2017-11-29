@@ -7,8 +7,7 @@ use GuzzleHttp\Exception\RequestException;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\Fcm\Exceptions\CouldNotSendNotification;
 
-class FcmChannel
-{
+class FcmChannel {
     const DEFAULT_API_URL = 'https://fcm.googleapis.com';
     const MAX_TOKEN_PER_REQUEST = 1000;
 
@@ -17,8 +16,7 @@ class FcmChannel
      */
     protected $client;
 
-    public function __construct(Client $client)
-    {
+    public function __construct(Client $client) {
         $this->client = $client;
     }
 
@@ -33,7 +31,10 @@ class FcmChannel
     public function send($notifiable, Notification $notification)
     {
         // Get the token/s from the model
-        $tokens = (array) $notifiable->routeNotificationForFcm();
+        if (!$notifiable->routeNotificationFor('fcm')) {
+            return;
+        }
+        $tokens = (array)$notifiable->routeNotificationFor('fcm');
 
         if (empty($tokens)) {
             return;
@@ -60,8 +61,7 @@ class FcmChannel
         }
     }
 
-    private function sendToFcm($message)
-    {
+    private function sendToFcm($message) {
         try {
             $this->client->request('POST', '/fcm/send', [
                 'body' => $message->toJson(),
